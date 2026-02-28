@@ -1,6 +1,6 @@
 /* ===== CSS VARIABLES ===== */
 :root {
-  --bg: #dcdcf6;
+  --bg: #cecee8;
   --surface: #ffffff;
   --surface2: #eef0f4;
   --border: rgba(0,0,0,0.09);
@@ -8,8 +8,8 @@
   --text-muted: #6b7280;
   --accent-books: #e85d28;
   --accent-tutors: #0fa89e;
-  --accent-skills: #7c5ce6;
-  --font-display: 'Audiowide', sans-serif;
+  --accent-skills: #968abc;
+  --font-display: 'Syne', sans-serif;
   --font-body: 'DM Sans', sans-serif;
   --radius: 20px;
   --transition: 0.3s cubic-bezier(0.4,0,0.2,1);
