@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Skills - EduConnect</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <h1>Skills</h1>
+    <input type="text" id="searchInput" placeholder="Search by skill">
+    <div id="skillList">
+        {% for skill in skills %}
+        <div class="card" onclick="showSkill('{{skill.skill}}','{{skill.owner}}','{{skill.experience}}','{{skill.contact}}')">
+            <h3>{{skill.skill}}</h3>
+            <p>{{skill.owner}}</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <script src="/static/script.js"></script>
+</body>
+</html>

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Books - EduConnect</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <h1>Books</h1>
+    <input type="text" id="searchInput" placeholder="Search by title or topic">
+    <select id="deptFilter">
+        <option value="">All Departments</option>
+        <option value="CS">CS</option>
+        <option value="ECE">ECE</option>
+        <option value="Mechanical/Industrial">Mechanical/Industrial</option>
+        <option value="EEE">EEE</option>
+        <option value="EL">EL</option>
+        <option value="AE">AE</option>
+    </select>
+    <div id="bookList">
+        {% for book in books %}
+        <div class="card" onclick="showDetails('{{book.title}}','{{book.author}}','{{book.dept}}','{{book.owner}}','{{book.price}}','{{book.condition}}','{{book.contact}}')">
+            <h3>{{book.title}}</h3>
+            <p>{{book.author}}</p>
+            <p>{{book.dept}}</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <script src="/static/script.js"></script>
+</body>
+</html>

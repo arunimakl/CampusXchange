@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Tutors - EduConnect</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <h1>Tutors</h1>
+    <input type="text" id="searchInput" placeholder="Search by name or skill">
+    <div id="tutorList">
+        {% for tutor in tutors %}
+        <div class="card" onclick="showTutor('{{tutor.name}}','{{tutor.skill}}','{{tutor.rate}}','{{tutor.days}}','{{tutor.location}}')">
+            <h3>{{tutor.name}}</h3>
+            <p>{{tutor.skill}}</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <script src="/static/script.js"></script>
+</body>
+</html>
