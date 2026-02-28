@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, jsonify
-
+import os
 app = Flask(__name__)
 
 # In-memory book store (seed data)
@@ -74,4 +74,6 @@ def add_book():
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    port = int(os.environ.get('PORT', 5000))
+    # Bind to 0.0.0.0 so external traffic can reach the app
+    app.run(host='0.0.0.0', port=port, debug=True)
