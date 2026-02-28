@@ -1,31 +1,449 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Books - EduConnect</title>
-    <link rel="stylesheet" href="/static/style.css">
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Books &mdash; CampusXchange</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet"/>
+  <style>
+    /* ── Add-book form modal ── */
+    .add-modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.4);
+      backdrop-filter: blur(10px);
+      z-index: 1000;
+      display: flex; align-items: center; justify-content: center;
+      padding: 20px;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.3s cubic-bezier(0.4,0,0.2,1);
+    }
+    .add-modal-overlay.active { opacity: 1; pointer-events: all; }
+
+    .add-modal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 24px; padding: 40px;
+      max-width: 560px; width: 100%;
+      position: relative;
+      transform: translateY(20px) scale(0.97);
+      transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
+      max-height: 92vh; overflow-y: auto;
+    }
+    .add-modal-overlay.active .add-modal { transform: translateY(0) scale(1); }
+
+    .add-modal h2 {
+      font-family: var(--font-display);
+      font-size: 1.5rem; font-weight: 800;
+      letter-spacing: -0.5px; margin-bottom: 6px;
+    }
+    .add-modal .sub { font-size: 0.88rem; color: var(--text-muted); margin-bottom: 28px; }
+
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .form-grid .full { grid-column: 1 / -1; }
+
+    .field { display: flex; flex-direction: column; gap: 6px; }
+    .field label {
+      font-size: 0.78rem; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.8px;
+      color: var(--text-muted);
+    }
+    .field input, .field select, .field textarea {
+      padding: 12px 16px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      font-family: var(--font-body); font-size: 0.93rem;
+      outline: none;
+      transition: border-color 0.3s;
+      width: 100%;
+    }
+    .field input::placeholder, .field textarea::placeholder { color: var(--text-muted); }
+    .field input:focus, .field select:focus, .field textarea:focus {
+      border-color: rgba(232,93,40,0.5);
+    }
+    .field select option { background: var(--surface2); }
+    .field textarea { resize: vertical; min-height: 72px; }
+
+    .form-actions { display: flex; gap: 12px; margin-top: 28px; }
+    .btn-submit {
+      flex: 1; padding: 14px;
+      background: var(--accent-books); color: #fff;
+      border: none; border-radius: 12px;
+      font-family: var(--font-display); font-weight: 700; font-size: 0.95rem;
+      cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;
+      box-shadow: 0 6px 20px rgba(232,93,40,0.3);
+    }
+    .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(232,93,40,0.4); }
+    .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+    .btn-cancel {
+      padding: 14px 24px;
+      background: var(--surface2); color: var(--text-muted);
+      border: 1px solid var(--border); border-radius: 12px;
+      font-family: var(--font-body); font-weight: 500; font-size: 0.93rem;
+      cursor: pointer; transition: color 0.2s, border-color 0.2s;
+    }
+    .btn-cancel:hover { color: var(--text); border-color: rgba(0,0,0,0.2); }
+
+    /* Sell button in header */
+    .sell-btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 12px 24px;
+      background: var(--accent-books); color: #fff;
+      border: none; border-radius: 50px;
+      font-family: var(--font-display); font-weight: 700; font-size: 0.9rem;
+      cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;
+      box-shadow: 0 6px 20px rgba(232,93,40,0.28);
+      letter-spacing: 0.3px;
+    }
+    .sell-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(232,93,40,0.4); }
+
+    /* Toast notification */
+    .toast {
+      position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%) translateY(80px);
+      background: #1a1a2e; color: #fff;
+      padding: 14px 28px; border-radius: 50px;
+      font-size: 0.9rem; font-weight: 500;
+      z-index: 2000;
+      transition: transform 0.4s cubic-bezier(0.4,0,0.2,1), opacity 0.4s;
+      opacity: 0; pointer-events: none;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+    .toast.success { background: #0fa89e; }
+    .toast.error { background: #e85d28; }
+
+    /* Error text under fields */
+    .field-error { font-size: 0.78rem; color: #e85d28; margin-top: 2px; display: none; }
+    .field.invalid input, .field.invalid select { border-color: rgba(232,93,40,0.6); }
+    .field.invalid .field-error { display: block; }
+  </style>
 </head>
-<body>
-    <h1>Books</h1>
-    <input type="text" id="searchInput" placeholder="Search by title or topic">
-    <select id="deptFilter">
-        <option value="">All Departments</option>
-        <option value="CS">CS</option>
-        <option value="ECE">ECE</option>
-        <option value="Mechanical/Industrial">Mechanical/Industrial</option>
-        <option value="EEE">EEE</option>
-        <option value="EL">EL</option>
-        <option value="AE">AE</option>
-    </select>
-    <div id="bookList">
-        {% for book in books %}
-        <div class="card" onclick="showDetails('{{book.title}}','{{book.author}}','{{book.dept}}','{{book.owner}}','{{book.price}}','{{book.condition}}','{{book.contact}}')">
-            <h3>{{book.title}}</h3>
-            <p>{{book.author}}</p>
-            <p>{{book.dept}}</p>
-        </div>
-        {% endfor %}
+<body class="books-page">
+
+  <nav class="navbar">
+    <div class="nav-logo">Campus<span>X</span>change</div>
+    <div class="nav-links">
+      <a href="/books" style="color:var(--accent-books)">Books</a>
+      <a href="/tutors">Tutors</a>
+      <a href="/skills">Skills</a>
+    </div>
+  </nav>
+
+  <div class="page-wrapper">
+    <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:20px;">
+      <div>
+        <a href="/" class="back-link">&#8592; Back to Home</a>
+        <h1>&#128218; Available <span>Books</span></h1>
+        <p>Browse and buy second-hand textbooks from fellow students.</p>
+      </div>
+      <button class="sell-btn" id="openAddModal" style="margin-top:36px;">
+        &#43; Sell a Book
+      </button>
     </div>
 
-    <script src="/static/script.js"></script>
+    <div class="controls">
+      <div class="search-box">
+        <span class="search-icon">&#128269;</span>
+        <input type="text" id="searchInput" placeholder="Search by title, subject, topic, author..." />
+      </div>
+      <select class="filter-select" id="deptFilter">
+        <option value="">All Departments</option>
+        <option value="mechanical">Mechanical</option>
+        <option value="computer science">Computer Science</option>
+        <option value="electrical">Electrical</option>
+        <option value="civil">Civil</option>
+        <option value="management">Management</option>
+        <option value="mathematics">Mathematics</option>
+        <option value="physics">Physics</option>
+        <option value="chemistry">Chemistry</option>
+        <option value="arts">Arts</option>
+      </select>
+      <select class="filter-select" id="conditionFilter">
+        <option value="">Any Condition</option>
+        <option value="good as new">Good as New</option>
+        <option value="good">Good</option>
+        <option value="used">Used</option>
+      </select>
+    </div>
+
+    <div class="result-count"><span id="countNum">0</span> books found</div>
+    <div class="listing-grid" id="listingGrid"></div>
+  </div>
+
+  <!-- ── View Book MODAL ── -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal">
+      <button class="modal-close" id="modalClose">&#10005;</button>
+      <div class="modal-emoji">&#128218;</div>
+      <div class="modal-type" style="color:var(--accent-books)">BOOK LISTING</div>
+      <h2 id="mTitle"></h2>
+      <div class="modal-details" id="mDetails"></div>
+      <div class="modal-contact">
+        <div class="detail-label">&#128222; Contact Owner</div>
+        <div class="contact-value" id="mContact" style="color:var(--accent-books)"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Add Book MODAL ── -->
+  <div class="add-modal-overlay" id="addModalOverlay">
+    <div class="add-modal">
+      <button class="modal-close" id="closeAddModal">&#10005;</button>
+      <h2>&#128218; List Your Book</h2>
+      <p class="sub">Fill in the details and we'll add your book to the marketplace instantly.</p>
+
+      <div class="form-grid">
+        <div class="field full" id="f-title">
+          <label>Book Title *</label>
+          <input type="text" id="inp-title" placeholder="e.g. Engineering Mathematics Vol.1" maxlength="120"/>
+          <span class="field-error">Please enter the book title.</span>
+        </div>
+        <div class="field" id="f-author">
+          <label>Author *</label>
+          <input type="text" id="inp-author" placeholder="e.g. R.K. Bansal" maxlength="80"/>
+          <span class="field-error">Please enter the author.</span>
+        </div>
+        <div class="field" id="f-subject">
+          <label>Subject *</label>
+          <input type="text" id="inp-subject" placeholder="e.g. Fluid Mechanics" maxlength="80"/>
+          <span class="field-error">Please enter the subject.</span>
+        </div>
+        <div class="field" id="f-dept">
+          <label>Department *</label>
+          <select id="inp-dept">
+            <option value="">Select Department</option>
+            <option>Mechanical</option>
+            <option>Computer Science</option>
+            <option>Electrical</option>
+            <option>Civil</option>
+            <option>Management</option>
+            <option>Mathematics</option>
+            <option>Physics</option>
+            <option>Chemistry</option>
+            <option>Arts</option>
+          </select>
+          <span class="field-error">Please select a department.</span>
+        </div>
+        <div class="field" id="f-price">
+          <label>Price (₹) *</label>
+          <input type="number" id="inp-price" placeholder="e.g. 250" min="0" max="9999"/>
+          <span class="field-error">Please enter a valid price.</span>
+        </div>
+        <div class="field" id="f-condition">
+          <label>Condition *</label>
+          <select id="inp-condition">
+            <option value="">Select Condition</option>
+            <option>Good as New</option>
+            <option>Good</option>
+            <option>Used</option>
+          </select>
+          <span class="field-error">Please select the condition.</span>
+        </div>
+        <div class="field" id="f-holder">
+          <label>Your Name *</label>
+          <input type="text" id="inp-holder" placeholder="e.g. Rahul Thomas" maxlength="60"/>
+          <span class="field-error">Please enter your name.</span>
+        </div>
+        <div class="field" id="f-contact">
+          <label>Contact Number *</label>
+          <input type="tel" id="inp-contact" placeholder="10-digit mobile number" maxlength="10"/>
+          <span class="field-error">Please enter a valid 10-digit number.</span>
+        </div>
+        <div class="field full">
+          <label>Keywords / Topics <span style="font-weight:400;text-transform:none;letter-spacing:0">(optional)</span></label>
+          <textarea id="inp-topics" placeholder="e.g. thermodynamics heat engine steam — helps with search"></textarea>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn-submit" id="submitBook">&#128218; Add Book Listing</button>
+        <button class="btn-cancel" id="cancelAddModal">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <script src="{{ url_for('static', filename='sript.js') }}"></script>
+  <script>
+    let books = [];
+    let filtered = [];
+
+    // ── Fetch books from API ─────────────────────────────────────
+    async function fetchBooks() {
+      try {
+        const res = await fetch('/api/books');
+        books = await res.json();
+        filtered = [...books];
+        renderCards();
+      } catch(e) {
+        showToast('Failed to load books.', 'error');
+      }
+    }
+
+    // ── Render cards ─────────────────────────────────────────────
+    function renderCards() {
+      const grid = document.getElementById("listingGrid");
+      document.getElementById("countNum").textContent = filtered.length;
+      if (filtered.length === 0) {
+        grid.innerHTML = `<div class="no-results"><span>&#128205;</span>No books found. Try a different search.</div>`;
+        return;
+      }
+      grid.innerHTML = filtered.map(b => `
+        <div class="listing-card" onclick="openModal(${b.id})">
+          <div class="tutor-avatar">${b.emoji}</div>
+          <div class="card-dept">${b.dept}</div>
+          <h3>${b.title}</h3>
+          <div class="card-meta">
+            &#9997;&#65039; ${b.author}<br/>
+            &#128214; ${b.subject}<br/>
+            &#128100; ${b.holder}
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:16px">
+            <span class="price-badge">&#8377;${b.price}</span>
+            <span class="price-badge">${b.condition}</span>
+          </div>
+        </div>`).join("");
+    }
+
+    // ── Open view modal ──────────────────────────────────────────
+    function openModal(id) {
+      const b = books.find(x => x.id === id);
+      document.getElementById("mTitle").textContent = b.title;
+      document.getElementById("mContact").textContent = b.contact;
+      document.getElementById("mDetails").innerHTML = `
+        <div class="detail-row"><div class="detail-icon">&#9997;&#65039;</div><div><div class="detail-label">Author</div><div class="detail-value">${b.author}</div></div></div>
+        <div class="detail-row"><div class="detail-icon">&#128214;</div><div><div class="detail-label">Subject / Department</div><div class="detail-value">${b.subject} &mdash; ${b.dept} Dept.</div></div></div>
+        <div class="detail-row"><div class="detail-icon">&#127991;&#65039;</div><div><div class="detail-label">Price</div><div class="detail-value" style="color:var(--accent-books);font-weight:700;font-size:1.2rem">&#8377;${b.price}</div></div></div>
+        <div class="detail-row"><div class="detail-icon">&#11088;</div><div><div class="detail-label">Condition</div><div class="detail-value">${b.condition}</div></div></div>
+        <div class="detail-row"><div class="detail-icon">&#128100;</div><div><div class="detail-label">Owner / Seller</div><div class="detail-value">${b.holder}</div></div></div>`;
+      document.getElementById("modalOverlay").classList.add("active");
+    }
+
+    // ── Filters ──────────────────────────────────────────────────
+    function applyFilters() {
+      const search = document.getElementById("searchInput").value.toLowerCase();
+      const dept = document.getElementById("deptFilter").value.toLowerCase();
+      const condition = document.getElementById("conditionFilter").value.toLowerCase();
+      filtered = books.filter(b => {
+        const text = `${b.title} ${b.author} ${b.subject} ${b.topics} ${b.dept}`.toLowerCase();
+        return (!search || text.includes(search)) &&
+               (!dept || b.dept.toLowerCase().includes(dept)) &&
+               (!condition || b.condition.toLowerCase().includes(condition));
+      });
+      renderCards();
+    }
+
+    // ── Toast helper ─────────────────────────────────────────────
+    function showToast(msg, type = 'success') {
+      const t = document.getElementById('toast');
+      t.textContent = type === 'success' ? '✓  ' + msg : '✕  ' + msg;
+      t.className = 'toast ' + type + ' show';
+      setTimeout(() => t.classList.remove('show'), 3200);
+    }
+
+    // ── Add Book modal open/close ─────────────────────────────────
+    const addOverlay = document.getElementById('addModalOverlay');
+    document.getElementById('openAddModal').addEventListener('click', () => addOverlay.classList.add('active'));
+    document.getElementById('closeAddModal').addEventListener('click', closeAddModal);
+    document.getElementById('cancelAddModal').addEventListener('click', closeAddModal);
+    addOverlay.addEventListener('click', e => { if(e.target === addOverlay) closeAddModal(); });
+
+    function closeAddModal() {
+      addOverlay.classList.remove('active');
+      clearForm();
+    }
+
+    function clearForm() {
+      ['title','author','subject','dept','price','condition','holder','contact','topics'].forEach(f => {
+        const el = document.getElementById('inp-' + f);
+        el.value = '';
+        const wrapper = document.getElementById('f-' + f);
+        if (wrapper) wrapper.classList.remove('invalid');
+      });
+    }
+
+    // ── Validation ────────────────────────────────────────────────
+    function validate() {
+      let ok = true;
+      const checks = {
+        title:     v => v.trim().length > 0,
+        author:    v => v.trim().length > 0,
+        subject:   v => v.trim().length > 0,
+        dept:      v => v !== '',
+        price:     v => v !== '' && !isNaN(v) && parseInt(v) >= 0,
+        condition: v => v !== '',
+        holder:    v => v.trim().length > 0,
+        contact:   v => /^\d{10}$/.test(v.trim()),
+      };
+      for (const [field, test] of Object.entries(checks)) {
+        const el = document.getElementById('inp-' + field);
+        const wrapper = document.getElementById('f-' + field);
+        if (!test(el.value)) {
+          wrapper.classList.add('invalid');
+          ok = false;
+        } else {
+          wrapper.classList.remove('invalid');
+        }
+      }
+      return ok;
+    }
+
+    // ── Submit ────────────────────────────────────────────────────
+    document.getElementById('submitBook').addEventListener('click', async () => {
+      if (!validate()) return;
+
+      const btn = document.getElementById('submitBook');
+      btn.disabled = true;
+      btn.textContent = 'Adding…';
+
+      const payload = {
+        title:     document.getElementById('inp-title').value,
+        author:    document.getElementById('inp-author').value,
+        subject:   document.getElementById('inp-subject').value,
+        dept:      document.getElementById('inp-dept').value,
+        price:     document.getElementById('inp-price').value,
+        condition: document.getElementById('inp-condition').value,
+        holder:    document.getElementById('inp-holder').value,
+        contact:   document.getElementById('inp-contact').value,
+        topics:    document.getElementById('inp-topics').value,
+      };
+
+      try {
+        const res = await fetch('/api/books', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        if (!res.ok) throw new Error('Server error');
+        const newBook = await res.json();
+        books.push(newBook);
+        filtered = [...books];
+        applyFilters();
+        closeAddModal();
+        showToast('Book listed successfully!', 'success');
+      } catch(e) {
+        showToast('Something went wrong. Try again.', 'error');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '&#128218; Add Book Listing';
+      }
+    });
+
+    // ── Event listeners ───────────────────────────────────────────
+    document.getElementById("searchInput").addEventListener("input", applyFilters);
+    document.getElementById("deptFilter").addEventListener("change", applyFilters);
+    document.getElementById("conditionFilter").addEventListener("change", applyFilters);
+    document.getElementById("modalClose").addEventListener("click", () => document.getElementById("modalOverlay").classList.remove("active"));
+    document.getElementById("modalOverlay").addEventListener("click", e => {
+      if(e.target === document.getElementById("modalOverlay")) document.getElementById("modalOverlay").classList.remove("active");
+    });
+
+    // ── Init ──────────────────────────────────────────────────────
+    fetchBooks();
+  </script>
 </body>
 </html>
