@@ -1,15 +1,108 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>EduConnect</title>
-    <link rel="stylesheet" href="/static/style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CampusXchange — Books · Tutors · Skills</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet"/>
 </head>
 <body>
-    <h1>Welcome to EduConnect</h1>
-    <div class="cards">
-        <a href="/books" class="card">Books</a>
-        <a href="/tutors" class="card">Tutors</a>
-        <a href="/skills" class="card">Skills</a>
+
+  <nav class="navbar">
+    <div class="nav-logo">Campus<span>X</span>change</div>
+    <div class="nav-links">
+      <a href="/books">Books</a>
+      <a href="/tutors">Tutors</a>
+      <a href="/skills">Skills</a>
     </div>
+  </nav>
+
+  <section class="hero">
+    <div class="hero-bg">
+      <div class="blob blob1"></div>
+      <div class="blob blob2"></div>
+      <div class="blob blob3"></div>
+      <div class="grid-overlay"></div>
+    </div>
+    <div class="hero-content">
+      <div class="hero-badge">&#127891; Your Campus Marketplace</div>
+      <h1>Exchange Knowledge,<br/><em>Grow Together.</em></h1>
+      <p>Buy books, find tutors, and trade skills — all within your campus community.</p>
+      <a href="#categories" class="hero-cta">Explore Now</a>
+    </div>
+    <div class="hero-stats">
+      <div class="stat"><span>240</span> Books Listed</div>
+      <div class="stat-div"></div>
+      <div class="stat"><span>80</span> Tutors</div>
+      <div class="stat-div"></div>
+      <div class="stat"><span>120</span> Skills</div>
+    </div>
+  </section>
+
+  <section class="categories" id="categories">
+    <div class="section-label">— What are you looking for?</div>
+    <h2 class="section-title">Three Ways to Exchange</h2>
+    <div class="cards-grid">
+      <a href="/books" class="card card-books">
+        <div class="card-icon">&#128218;</div>
+        <div class="card-tag">Marketplace</div>
+        <h3>Books</h3>
+        <p>Find affordable second-hand textbooks and study material from fellow students.</p>
+        <div class="card-footer">
+          <span>Browse Books</span>
+          <div class="card-arrow">&#8594;</div>
+        </div>
+        <div class="card-bg-shape"></div>
+      </a>
+      <a href="/tutors" class="card card-tutors">
+        <div class="card-icon">&#128105;&#8205;&#127979;</div>
+        <div class="card-tag">Learning</div>
+        <h3>Tutors</h3>
+        <p>Connect with expert seniors and students who can guide you through any subject.</p>
+        <div class="card-footer">
+          <span>Find Tutors</span>
+          <div class="card-arrow">&#8594;</div>
+        </div>
+        <div class="card-bg-shape"></div>
+      </a>
+      <a href="/skills" class="card card-skills">
+        <div class="card-icon">&#9889;</div>
+        <div class="card-tag">Community</div>
+        <h3>Skills</h3>
+        <p>Trade skills — graphic design, coding, music, language, and so much more.</p>
+        <div class="card-footer">
+          <span>Explore Skills</span>
+          <div class="card-arrow">&#8594;</div>
+        </div>
+        <div class="card-bg-shape"></div>
+      </a>
+    </div>
+  </section>
+
+  <section class="featured">
+    <div class="section-label">— Recently Added</div>
+    <h2 class="section-title">Featured Listings</h2>
+    <div class="featured-grid">
+      <div class="feat-card books-feat"><div class="feat-type">&#128218; Book</div><h4>Engineering Mechanics Vol.2</h4><p>Mechanical Dept &middot; &#8377;180 &middot; Good Condition</p></div>
+      <div class="feat-card tutors-feat"><div class="feat-type">&#128105;&#8205;&#127979; Tutor</div><h4>Arjun Nair &mdash; Data Structures</h4><p>Online &middot; &#8377;200/hr &middot; Mon, Wed, Fri</p></div>
+      <div class="feat-card skills-feat"><div class="feat-type">&#9889; Skill</div><h4>UI/UX Design &mdash; Figma</h4><p>Priya S &middot; 3 yrs exp &middot; Free / Barter</p></div>
+      <div class="feat-card books-feat"><div class="feat-type">&#128218; Book</div><h4>Organic Chemistry by Morrison &amp; Boyd</h4><p>Chemistry Dept &middot; &#8377;220 &middot; Very Good</p></div>
+      <div class="feat-card tutors-feat"><div class="feat-type">&#128105;&#8205;&#127979; Tutor</div><h4>Meera K &mdash; Calculus &amp; Algebra</h4><p>Offline &middot; &#8377;150/hr &middot; Weekends</p></div>
+      <div class="feat-card skills-feat"><div class="feat-type">&#9889; Skill</div><h4>Video Editing &mdash; Premiere Pro</h4><p>Rahul T &middot; 2 yrs exp &middot; &#8377;100/session</p></div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="footer-logo">Campus<span>X</span>change</div>
+    <p>Built for students, by students. &#128153;</p>
+    <div class="footer-links">
+      <a href="/books">Books</a>
+      <a href="/tutors">Tutors</a>
+      <a href="/skills">Skills</a>
+    </div>
+  </footer>
+
+  <script src="{{ url_for('static', filename='sript.js') }}"></script>
 </body>
 </html>

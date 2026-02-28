@@ -1,21 +1,153 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Tutors - EduConnect</title>
-    <link rel="stylesheet" href="/static/style.css">
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Tutors &mdash; CampusXchange</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet"/>
 </head>
-<body>
-    <h1>Tutors</h1>
-    <input type="text" id="searchInput" placeholder="Search by name or skill">
-    <div id="tutorList">
-        {% for tutor in tutors %}
-        <div class="card" onclick="showTutor('{{tutor.name}}','{{tutor.skill}}','{{tutor.rate}}','{{tutor.days}}','{{tutor.location}}')">
-            <h3>{{tutor.name}}</h3>
-            <p>{{tutor.skill}}</p>
-        </div>
-        {% endfor %}
+<body class="tutors-page">
+
+  <nav class="navbar">
+    <div class="nav-logo">Campus<span>X</span>change</div>
+    <div class="nav-links">
+      <a href="/books">Books</a>
+      <a href="/tutors" style="color:var(--accent-tutors)">Tutors</a>
+      <a href="/skills">Skills</a>
+    </div>
+  </nav>
+
+  <div class="page-wrapper">
+    <div class="page-header">
+      <a href="/" class="back-link">&#8592; Back to Home</a>
+      <h1>&#128105;&#8205;&#127979; Find a <span>Tutor</span></h1>
+      <p>Connect with experienced students and seniors who can guide your learning.</p>
     </div>
 
-    <script src="/static/script.js"></script>
+    <div class="controls">
+      <div class="search-box">
+        <span class="search-icon">&#128269;</span>
+        <input type="text" id="searchInput" placeholder="Search by name, subject, topic..." />
+      </div>
+      <select class="filter-select" id="modeFilter">
+        <option value="">Online &amp; Offline</option>
+        <option value="online">Online Only</option>
+        <option value="offline">Offline Only</option>
+        <option value="both">Both</option>
+      </select>
+      <select class="filter-select" id="dayFilter">
+        <option value="">Any Day</option>
+        <option value="mon">Monday</option>
+        <option value="tue">Tuesday</option>
+        <option value="wed">Wednesday</option>
+        <option value="thu">Thursday</option>
+        <option value="fri">Friday</option>
+        <option value="sat">Saturday</option>
+        <option value="sun">Sunday</option>
+      </select>
+    </div>
+
+    <div class="result-count"><span id="countNum">0</span> tutors available</div>
+    <div class="listing-grid" id="listingGrid"></div>
+  </div>
+
+  <!-- MODAL -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal">
+      <button class="modal-close" id="modalClose">&#10005;</button>
+      <div class="modal-avatar" id="mAvatar"></div>
+      <div class="modal-type" style="color:var(--accent-tutors)">TUTOR PROFILE</div>
+      <h2 id="mTitle"></h2>
+      <div class="modal-details" id="mDetails"></div>
+      <div class="modal-contact">
+        <div class="detail-label">&#128222; Contact Tutor</div>
+        <div class="contact-value" id="mContact" style="color:var(--accent-tutors)"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="{{ url_for('static', filename='sript.js') }}"></script>
+  <script>
+    const tutors = [
+      { id:1, name:"Arjun Nair", emoji:"&#128104;&#8205;&#128187;", subject:"Theory of Machine Design", topics:"machine design gear stress theory of failure cam link", dept:"Mechanical Engineering", rate:200, days:"Mon, Wed, Fri", mode:"Online", location:"Google Meet / Zoom", exp:"2 years", rating:"4.8", contact:"9876543210", lang:"English, Malayalam" },
+      { id:2, name:"Meera Krishnan", emoji:"&#128105;&#8205;&#128300;", subject:"Calculus & Linear Algebra", topics:"differentiation integration matrices vectors limits", dept:"Mathematics", rate:150, days:"Sat, Sun", mode:"Offline", location:"College Library", exp:"1.5 years", rating:"4.9", contact:"9812345678", lang:"English" },
+      { id:3, name:"Akhila Prakash", emoji:"&#9881;&#65039;", subject:"Thermodynamics", topics:"entropy enthalpy heat engine carnot cycle", dept:"Mechanical", rate:180, days:"Tue, Thu", mode:"Both", location:"Online + KL Hostel A", exp:"2.5 years", rating:"4.7", contact:"9988776655", lang:"English, Tamil" },
+      { id:4, name:"Priyanka J", emoji:"&#128105;&#8205;&#127979;", subject:"Operations Management", topics:"inventory forecasting kanban winter holt manufacturing johnson's law", dept:"Industrial Engineering", rate:120, days:"Mon, Tue, Wed, Thu, Fri", mode:"Both", location:"Online / Campus Cafeteria", exp:"3 years", rating:"5.0", contact:"9123456789", lang:"English" },
+      { id:5, name:"Hareesh Kumar", emoji:"&#9889;", subject:"Work System Design", topics:"productivity work measurement timestudy method study charts", dept:"Industrial Engineeringl", rate:190, days:"Wed, Fri, Sat", mode:"Offline", location:"ECE Lab Block", exp:"2 years", rating:"4.6", contact:"9887654321", lang:"English, Malayalam" },
+      { id:6, name:"Ansil Abraham", emoji:"&#129516;", subject:"Organic Chemistry", topics:"reactions mechanisms functional groups isomers", dept:"Chemistry", rate:160, days:"Mon, Thu, Sat", mode:"Both", location:"Online + Chemistry Block", exp:"2 years", rating:"4.8", contact:"9765432189", lang:"English" },
+      { id:7, name:"Sawan S Krishnan", emoji:"&#127959;&#65039;", subject:"Structural Analysis", topics:"beams frames trusses deflection shear bending", dept:"Civil", rate:170, days:"Tue, Fri", mode:"Offline", location:"Civil Block Seminar Hall", exp:"3 years", rating:"4.5", contact:"9654321098", lang:"English, Malayalam" },
+      { id:8, name:"Theerdha Prem", emoji:"&#128187;", subject:"Python & Machine Learning", topics:"pandas numpy sklearn neural networks nlp", dept:"Computer Science", rate:250, days:"Sat, Sun", mode:"Online", location:"Google Meet", exp:"2.5 years", rating:"4.9", contact:"9543210987", lang:"English" },
+      { id:9, name:"Amal Mirshad", emoji:"&#128208;", subject:"Engineering Graphics", topics:"orthographic isometric sectional views ", dept:"Mechanical", rate:140, days:"Mon, Wed, Fri", mode:"Both", location:"Drawing Hall / Online", exp:"1.5 years", rating:"4.7", contact:"9432109876", lang:"English, Malayalam" },
+      { id:10, name:"Nadhini Hari", emoji:"&#128202;", subject:"Robotics and Automation", topics:"hydraulics pneumatics plc sensors cascading method logic circuit", dept:"Electrical", rate:160, days:"Tue, Thu, Sun", mode:"Online", location:"Zoom / Teams", exp:"2 years", rating:"4.8", contact:"9321098765", lang:"English" },
+      { id:11, name:"Vishnu Das", emoji:"&#128301;", subject:"Physics — Optics & Waves", topics:"refraction diffraction interference polarization sound", dept:"Physics", rate:145, days:"Mon, Tue, Thu", mode:"Both", location:"Physics Lab / Google Meet", exp:"1.5 years", rating:"4.6", contact:"9210987654", lang:"English" },
+      { id:12, name:"Samyuktha Rajesh", emoji:"&#128105;&#8205;&#128187;", subject:"Web Development", topics:"html css javascript react nodejs express mongodb", dept:"Computer Science", rate:220, days:"Fri, Sat, Sun", mode:"Online", location:"Discord / Zoom", exp:"3 years", rating:"5.0", contact:"9109876543", lang:"English" },
+    ];
+
+    let filtered = [...tutors];
+
+    function renderCards() {
+      const grid = document.getElementById("listingGrid");
+      document.getElementById("countNum").textContent = filtered.length;
+      if (filtered.length === 0) {
+        grid.innerHTML = `<div class="no-results"><span>&#128205;</span>No tutors found. Try a different search.</div>`;
+        return;
+      }
+      grid.innerHTML = filtered.map(t => `
+        <div class="listing-card" onclick="openModal(${t.id})">
+          <div class="tutor-avatar">${t.emoji}</div>
+          <div class="card-dept">${t.dept}</div>
+          <h3>${t.name}</h3>
+          <div class="card-meta">
+            &#128214; ${t.subject}<br/>
+            &#128197; ${t.days}<br/>
+            &#128187; ${t.mode}
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:16px">
+            <span class="price-badge">&#8377;${t.rate}/hr</span>
+            <span class="price-badge">&#11088; ${t.rating}</span>
+          </div>
+        </div>`).join("");
+    }
+
+    function openModal(id) {
+      const t = tutors.find(x => x.id === id);
+      document.getElementById("mAvatar").innerHTML = t.emoji;
+      document.getElementById("mTitle").textContent = t.name;
+      document.getElementById("mContact").textContent = t.contact;
+      document.getElementById("mDetails").innerHTML = `
+        <div class="detail-row"><div class="detail-icon">&#128218;</div><div><div class="detail-label">Subject</div><div class="detail-value">${t.subject}</div></div></div>
+        <div class="detail-row"><div class="detail-icon">&#127979;</div><div><div class="detail-label">Department</div><div class="detail-value">${t.dept}</div></div></div>
+        <div class="detail-row"><div class="detail-icon">&#128176;</div><div><div class="detail-label">Rate</div><div class="detail-value" style="color:var(--accent-tutors);font-weight:700;font-size:1.1rem">&#8377;${t.rate} / hour</div></div></div>
+        <div class="detail-row"><div class="detail-icon">&#128197;</div><div><div class="detail-label">Available Days</div><div class="detail-value">${t.days}</div></div></div>
+        <div class="detail-row"><div class="detail-icon">&#128187;</div><div><div class="detail-label">Mode</div><div class="detail-value">${t.mode}</div></div></div>
+        <div class="detail-row"><div class="detail-icon">&#128205;</div><div><div class="detail-label">Location / Platform</div><div class="detail-value">${t.location}</div></div></div>
+        <div class="detail-row"><div class="detail-icon">&#127942;</div><div><div class="detail-label">Experience</div><div class="detail-value">${t.exp}</div></div></div>
+        <div class="detail-row"><div class="detail-icon">&#127760;</div><div><div class="detail-label">Languages</div><div class="detail-value">${t.lang}</div></div></div>
+        <div class="detail-row"><div class="detail-icon">&#11088;</div><div><div class="detail-label">Rating</div><div class="detail-value">${t.rating} / 5.0</div></div></div>`;
+      document.getElementById("modalOverlay").classList.add("active");
+    }
+
+    function applyFilters() {
+      const search = document.getElementById("searchInput").value.toLowerCase();
+      const mode = document.getElementById("modeFilter").value.toLowerCase();
+      const day = document.getElementById("dayFilter").value.toLowerCase();
+      filtered = tutors.filter(t => {
+        const text = `${t.name} ${t.subject} ${t.topics} ${t.dept}`.toLowerCase();
+        return (!search || text.includes(search)) &&
+               (!mode || t.mode.toLowerCase().includes(mode)) &&
+               (!day || t.days.toLowerCase().includes(day));
+      });
+      renderCards();
+    }
+
+    document.getElementById("searchInput").addEventListener("input", applyFilters);
+    document.getElementById("modeFilter").addEventListener("change", applyFilters);
+    document.getElementById("dayFilter").addEventListener("change", applyFilters);
+    document.getElementById("modalClose").addEventListener("click", () => document.getElementById("modalOverlay").classList.remove("active"));
+    document.getElementById("modalOverlay").addEventListener("click", e => { if(e.target === document.getElementById("modalOverlay")) document.getElementById("modalOverlay").classList.remove("active"); });
+
+    renderCards();
+  </script>
 </body>
 </html>

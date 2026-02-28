@@ -1,21 +1,156 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Skills - EduConnect</title>
-    <link rel="stylesheet" href="/static/style.css">
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Skills &mdash; CampusXchange</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet"/>
 </head>
-<body>
-    <h1>Skills</h1>
-    <input type="text" id="searchInput" placeholder="Search by skill">
-    <div id="skillList">
-        {% for skill in skills %}
-        <div class="card" onclick="showSkill('{{skill.skill}}','{{skill.owner}}','{{skill.experience}}','{{skill.contact}}')">
-            <h3>{{skill.skill}}</h3>
-            <p>{{skill.owner}}</p>
-        </div>
-        {% endfor %}
+<body class="skills-page">
+
+  <nav class="navbar">
+    <div class="nav-logo">Campus<span>X</span>change</div>
+    <div class="nav-links">
+      <a href="/books">Books</a>
+      <a href="/tutors">Tutors</a>
+      <a href="/skills" style="color:var(--accent-skills)">Skills</a>
+    </div>
+  </nav>
+
+  <div class="page-wrapper">
+    <div class="page-header">
+      <a href="/" class="back-link">&#8592; Back to Home</a>
+      <h1>&#9889; Trade <span>Skills</span></h1>
+      <p>Exchange what you know &mdash; design, code, music, language, and more.</p>
     </div>
 
-    <script src="/static/script.js"></script>
+    <div class="controls">
+      <div class="search-box">
+        <span class="search-icon">&#128269;</span>
+        <input type="text" id="searchInput" placeholder="Search skills, tools, interests..." />
+      </div>
+      <select class="filter-select" id="categoryFilter">
+        <option value="">All Categories</option>
+        <option value="design">Design</option>
+        <option value="technology">Technology</option>
+        <option value="music">Music</option>
+        <option value="language">Language</option>
+        <option value="photography">Photography</option>
+        <option value="fitness">Fitness</option>
+        <option value="art">Art &amp; Craft</option>
+        <option value="writing">Writing</option>
+        <option value="cooking">Cooking</option>
+      </select>
+      <select class="filter-select" id="pricingFilter">
+        <option value="">Any Pricing</option>
+        <option value="free">Free</option>
+        <option value="barter">Barter</option>
+        <option value="paid">Paid</option>
+      </select>
+    </div>
+
+    <div class="result-count"><span id="countNum">0</span> skills available</div>
+    <div class="listing-grid" id="listingGrid"></div>
+  </div>
+
+  <!-- MODAL -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal">
+      <button class="modal-close" id="modalClose">&#10005;</button>
+      <div class="modal-emoji" id="mEmoji"></div>
+      <div class="modal-type" style="color:var(--accent-skills)">SKILL LISTING</div>
+      <h2 id="mTitle"></h2>
+      <div class="modal-details" id="mDetails"></div>
+      <div class="modal-contact">
+        <div class="detail-label">&#128222; Contact for this Skill</div>
+        <div class="contact-value" id="mContact" style="color:var(--accent-skills)"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="{{ url_for('static', filename='sript.js') }}"></script>
+  <script>
+    const skills = [
+      { id:1, name:"UI/UX Design", emoji:"&#127912;", person:"Priya Suresh", tools:"Figma, Adobe XD", category:"Design", desc:"User interface design, wireframes, prototypes, user flows", exp:"3 years", pricing:"Free", details:"Willing to teach or collaborate for free", contact:"9876543210", availability:"Weekends" },
+      { id:2, name:"Video Editing", emoji:"&#127916;", person:"Rahul Thomas", tools:"Premiere Pro, After Effects", category:"Technology", desc:"YouTube videos, reels, shorts, colour grading, motion graphics", exp:"2 years", pricing:"Paid", details:"&#8377;100 per 5 min video / &#8377;300 per session", contact:"9812345678", availability:"Evenings" },
+      { id:3, name:"Guitar Lessons", emoji:"&#127928;", person:"Akhil Nair", tools:"Acoustic & Electric", category:"Music", desc:"Beginner to intermediate, chords, fingerpicking, tabs, songs", exp:"5 years", pricing:"Barter", details:"Will teach guitar in exchange for coding lessons", contact:"9988776655", availability:"Mon, Wed, Fri" },
+      { id:4, name:"French Language", emoji:"&#127467;&#127479;", person:"Anjali R.", tools:"Conversation + Grammar", category:"Language", desc:"Basic to A2 level French speaking, reading and writing", exp:"2 years", pricing:"Free", details:"Practice partner / peer learning", contact:"9123456789", availability:"Tue, Thu, Sat" },
+      { id:5, name:"Photography", emoji:"&#128247;", person:"Dev Pillai", tools:"DSLR, Lightroom", category:"Photography", desc:"Portrait, events, campus photography, photo editing", exp:"4 years", pricing:"Paid", details:"&#8377;500 per session / &#8377;200 per edited photo", contact:"9887654321", availability:"Weekends" },
+      { id:6, name:"Graphic Design", emoji:"&#9999;&#65039;", person:"Sneha Varma", tools:"Illustrator, Canva, Photoshop", category:"Design", desc:"Posters, logos, social media banners, branding", exp:"3 years", pricing:"Barter", details:"Skill exchange preferred — any helpful skill", contact:"9765432189", availability:"Flexible" },
+      { id:7, name:"Web Development", emoji:"&#128187;", person:"Arun M.", tools:"React, Node.js, TailwindCSS", category:"Technology", desc:"Build personal portfolios, static sites, and small web apps", exp:"2.5 years", pricing:"Paid", details:"&#8377;150/hr or project-based pricing", contact:"9654321098", availability:"Sat, Sun" },
+      { id:8, name:"Yoga & Meditation", emoji:"&#129336;", person:"Kavitha S.", tools:"Hatha Yoga, Mindfulness", category:"Fitness", desc:"Morning yoga sessions, breathwork, stress management", exp:"3 years", pricing:"Free", details:"Group sessions every Sunday 6 AM campus ground", contact:"9543210987", availability:"Sundays 6 AM" },
+      { id:9, name:"Spoken English", emoji:"&#128483;&#65039;", person:"Robin J.", tools:"Conversation Practice", category:"Language", desc:"Improve fluency, pronunciation, interview prep, public speaking", exp:"4 years", pricing:"Free", details:"Peer learning group or 1-on-1 sessions", contact:"9432109876", availability:"Mon-Fri evenings" },
+      { id:10, name:"Origami & Paper Craft", emoji:"&#129362;", person:"Meenu T.", tools:"Paper, Scissors, Templates", category:"Art", desc:"Traditional and modern origami, paper sculptures, gift boxes", exp:"6 years", pricing:"Free", details:"Happy to teach anyone interested", contact:"9321098765", availability:"Weekends" },
+      { id:11, name:"Python & Automation", emoji:"&#128013;", person:"Joel P.", tools:"Python, Selenium, Pandas", category:"Technology", desc:"Scripting, web scraping, automation bots, data processing", exp:"3 years", pricing:"Paid", details:"&#8377;200/hr, first session free", contact:"9210987654", availability:"Tue, Thu, Sat" },
+      { id:12, name:"Content Writing", emoji:"&#9997;&#65039;", person:"Riya K.", tools:"Blog, Articles, SEO", category:"Writing", desc:"Blog posts, social media content, essays, academic writing", exp:"2 years", pricing:"Barter", details:"Exchange writing for design or photography", contact:"9109876543", availability:"Evenings" },
+      { id:13, name:"Cooking - South Indian", emoji:"&#127835;", person:"Lakshmi A.", tools:"Traditional Recipes", category:"Cooking", desc:"Home cooking, meal prep, traditional Kerala and Tamil recipes", exp:"Lifelong", pricing:"Free", details:"Weekend cooking sessions at hostel kitchen", contact:"9098765432", availability:"Sundays" },
+      { id:14, name:"Mobile App Development", emoji:"&#128241;", person:"Vivek C.", tools:"Flutter, Firebase", category:"Technology", desc:"Cross-platform mobile apps, UI screens, API integration", exp:"2 years", pricing:"Paid", details:"Project-based: from &#8377;500 for basic apps", contact:"8987654321", availability:"Weekends" },
+    ];
+
+    let filtered = [...skills];
+
+    function renderCards() {
+      const grid = document.getElementById("listingGrid");
+      document.getElementById("countNum").textContent = filtered.length;
+      if (filtered.length === 0) {
+        grid.innerHTML = `<div class="no-results"><span>&#128205;</span>No skills found. Try a different search.</div>`;
+        return;
+      }
+      grid.innerHTML = filtered.map(s => `
+        <div class="listing-card" onclick="openModal(${s.id})">
+          <div class="tutor-avatar">${s.emoji}</div>
+          <div class="card-dept">${s.category}</div>
+          <h3>${s.name}</h3>
+          <div class="card-meta">
+            &#128100; ${s.person}<br/>
+            &#128295; ${s.tools}<br/>
+            &#128197; ${s.availability}
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:16px">
+            <span class="price-badge">${s.pricing}</span>
+            <span class="price-badge">${s.exp} exp</span>
+          </div>
+        </div>`).join("");
+    }
+
+    function openModal(id) {
+      const s = skills.find(x => x.id === id);
+      document.getElementById("mEmoji").innerHTML = s.emoji;
+      document.getElementById("mTitle").textContent = s.name;
+      document.getElementById("mContact").textContent = s.contact;
+      document.getElementById("mDetails").innerHTML = `
+        <div class="detail-row"><div class="detail-icon">&#128100;</div><div><div class="detail-label">Offered By</div><div class="detail-value">${s.person}</div></div></div>
+        <div class="detail-row"><div class="detail-icon">&#128193;</div><div><div class="detail-label">Category</div><div class="detail-value">${s.category}</div></div></div>
+        <div class="detail-row"><div class="detail-icon">&#128295;</div><div><div class="detail-label">Tools / Methods</div><div class="detail-value">${s.tools}</div></div></div>
+        <div class="detail-row"><div class="detail-icon">&#128221;</div><div><div class="detail-label">Description</div><div class="detail-value">${s.desc}</div></div></div>
+        <div class="detail-row"><div class="detail-icon">&#127942;</div><div><div class="detail-label">Experience</div><div class="detail-value">${s.exp}</div></div></div>
+        <div class="detail-row"><div class="detail-icon">&#128176;</div><div><div class="detail-label">Pricing Type</div><div class="detail-value" style="color:var(--accent-skills);font-weight:700">${s.pricing}</div></div></div>
+        <div class="detail-row"><div class="detail-icon">&#8505;&#65039;</div><div><div class="detail-label">Details / Terms</div><div class="detail-value">${s.details}</div></div></div>
+        <div class="detail-row"><div class="detail-icon">&#128197;</div><div><div class="detail-label">Availability</div><div class="detail-value">${s.availability}</div></div></div>`;
+      document.getElementById("modalOverlay").classList.add("active");
+    }
+
+    function applyFilters() {
+      const search = document.getElementById("searchInput").value.toLowerCase();
+      const cat = document.getElementById("categoryFilter").value.toLowerCase();
+      const pricing = document.getElementById("pricingFilter").value.toLowerCase();
+      filtered = skills.filter(s => {
+        const text = `${s.name} ${s.person} ${s.tools} ${s.category} ${s.desc}`.toLowerCase();
+        return (!search || text.includes(search)) &&
+               (!cat || s.category.toLowerCase().includes(cat)) &&
+               (!pricing || s.pricing.toLowerCase().includes(pricing));
+      });
+      renderCards();
+    }
+
+    document.getElementById("searchInput").addEventListener("input", applyFilters);
+    document.getElementById("categoryFilter").addEventListener("change", applyFilters);
+    document.getElementById("pricingFilter").addEventListener("change", applyFilters);
+    document.getElementById("modalClose").addEventListener("click", () => document.getElementById("modalOverlay").classList.remove("active"));
+    document.getElementById("modalOverlay").addEventListener("click", e => { if(e.target === document.getElementById("modalOverlay")) document.getElementById("modalOverlay").classList.remove("active"); });
+
+    renderCards();
+  </script>
 </body>
 </html>
